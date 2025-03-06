@@ -6,14 +6,14 @@ pipeline {
         }
     }
     environment {
-        // Define dynamic namespace based on job name and build number
         NAMESPACE = "pipeline-${env.JOB_NAME.replaceAll('/', '-')}-${env.BUILD_NUMBER}"
-        DOCKER_IMAGE = "avangelstech/k8s-jenkins-demo:${env.BUILD_NUMBER}"
+        DOCKER_IMAGE = "avangelstech/staraus:${env.BUILD_NUMBER}"
+        GIT_REPO = "https://github.com/avangels-tech/avangels-techin.git"
     }
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/avangels-tech/atpl-jenkins-cicd-demo.git', branch: 'main'
+                git url: "${GIT_REPO}", branch: 'main'
             }
         }
         stage('Build and Push Docker Image') {
@@ -30,11 +30,9 @@ pipeline {
         stage('Create Namespace and RBAC') {
             steps {
                 container('kubectl') {
-                    // Create namespace if it doesn't exist
                     sh """
                         kubectl create namespace ${NAMESPACE} || echo "Namespace ${NAMESPACE} already exists"
                     """
-                    // Apply RBAC Role and RoleBinding for the new namespace
                     sh """
                         kubectl apply -f - <<EOF
 apiVersion: rbac.authorization.k8s.io/v1
@@ -71,7 +69,6 @@ EOF
         stage('Deploy to Kubernetes') {
             steps {
                 container('kubectl') {
-                    // Update k8s-deployment.yaml with the correct namespace and image tag
                     sh """
                         sed -i "s|namespace: default|namespace: ${NAMESPACE}|g" k8s-deployment.yaml
                         sed -i "s|latest|${BUILD_NUMBER}|g" k8s-deployment.yaml
