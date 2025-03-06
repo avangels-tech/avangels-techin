@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: demo-app
-        image: avangelstech/k8s-jenkins-demo:latest  # Will be replaced by pipeline
+        image: avangelstech/staraus:latest  # Will be replaced by pipeline
         ports:
         - containerPort: 3000
         readinessProbe:
